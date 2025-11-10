@@ -121,8 +121,21 @@ class Board {
 
 public:
 
-    // Initializes the board to be 9 Tiles high and wide, and creates a 2D vector to keep track of tiles
-    Board() : height(9), width(9), board(9, vector<Tile>(9)) {}
+    Board(int height, int width) {
+        this->height = height;
+        this->width = width;
+        this->board = vector<vector<Tile>>(height, vector<Tile>(width));
+        for (int i = 0; i < (height / 3); i++) {
+            for (int j = 0; j < width; j++) {
+                board[i][j].setTemperature(2);
+            } // end of for loop
+        } // end of for loop
+        for (int i = (height / 3); i < (height / 3) * 2 ; i++) {
+            for (int j = 0; j < width; j++) {
+                board[i][j].setTemperature(1);
+            } // end of for loop
+        } // end of for loop
+    } // end of constructor Board
 
     // Returns the address of a Tile at a specific x and y coordinate of the board
     Tile& getTile(int x, int y) {return board[y][x];}
@@ -146,6 +159,15 @@ public:
             cout << endl;
         } // end of for loop
     } // end of method displayHunger
+
+    void displayTemperature() {
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                cout << board[i][j].getTemperature() << " ";
+            } // end of for loop
+            cout << endl;
+        } // end of for loop
+    } // end of method displayTemperature
 
     // Sweeps the board from top left to bottom right, and resolves Tile's actions when it encounters a Tile capable
     // of actions
@@ -281,7 +303,7 @@ public:
 
                 } else if (board[i][j].getOccupant() == "seaweed") {
 
-                    // Seaweed has a 30% chance each tick to convert a random empty Tile adjacent to it into seaweed
+                    // Seaweed has a 10% chance each tick to convert a random empty Tile adjacent to it into seaweed
                     bool birthed = false;
                     for (int top = i - 1; top <= i + 1 && !birthed; top++) {
                         for (int left = j - 1; left <= j + 1 && !birthed; left++) {
@@ -291,7 +313,7 @@ public:
                             } // end of if statement
 
                             if (board[top][left].getOccupant() == "empty") {
-                                if ((rand() % 100) < 30) {
+                                if ((rand() % 100) < 10) {
                                     cout << "Seaweed cloned" << endl;
                                     board[top][left].setOccupant("seaweed");
                                     birthed = true;
@@ -388,26 +410,7 @@ int main() {
     // Seeds the random number generator
     srand(time(0));
 
-    Board board;
-    board.getTile(0, 0).setOccupant("goldfish");
-    board.getTile(0, 0).setHunger(5);
-    board.getTile(1, 1).setOccupant("pufferfish");
-    board.getTile(1, 1).setHunger(5);
-    board.getTile(2, 2).setOccupant("shark");
-    board.getTile(2, 2).setHunger(5);
-    board.getTile(1, 2).setOccupant("seaweed");
-    board.getTile(1, 2).setHunger(0);
-    board.getTile(8, 8).setOccupant("seaweed");
-    board.getTile(8, 8).setHunger(0);
-    board.displayOccupants();
-    cout << endl;
-   for (int i = 0; i < 10; i++) {
-       board.tick();
-       board.displayOccupants();
-       cout << endl;
-   }
-
-
-
+    Board board(15, 15);
+    board.displayTemperature();
     return 0;
 } // end of main
