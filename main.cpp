@@ -125,16 +125,32 @@ public:
         this->height = height;
         this->width = width;
         this->board = vector<vector<Tile>>(height, vector<Tile>(width));
-        for (int i = 0; i < (height / 3); i++) {
-            for (int j = 0; j < width; j++) {
-                board[i][j].setTemperature(2);
+
+        // Checks if height is a multiple of 3. If not, creates an extra row of warm water
+        if (height % 3 != 0) {
+            // cout << "Height is not a multiple of 3" << endl;
+            for (int i = 0; i < (height / 3) + 1; i++) {
+                for (int j = 0; j < width; j++) {
+                    board[i][j].setTemperature(2);
+                } // end of for loop
             } // end of for loop
-        } // end of for loop
-        for (int i = (height / 3); i < (height / 3) * 2 ; i++) {
-            for (int j = 0; j < width; j++) {
-                board[i][j].setTemperature(1);
+            for (int i = (height / 3) + 1; i < ((height / 3) * 2) + 1 ; i++) {
+                for (int j = 0; j < width; j++) {
+                    board[i][j].setTemperature(1);
+                } // end of for loop
             } // end of for loop
-        } // end of for loop
+        } else {
+            for (int i = 0; i < (height / 3); i++) {
+                for (int j = 0; j < width; j++) {
+                    board[i][j].setTemperature(2);
+                } // end of for loop
+            } // end of for loop
+            for (int i = (height / 3); i < (height / 3) * 2 ; i++) {
+                for (int j = 0; j < width; j++) {
+                    board[i][j].setTemperature(1);
+                } // end of for loop
+            } // end of for loop
+        } // end of if else statement
     } // end of constructor Board
 
     // Returns the address of a Tile at a specific x and y coordinate of the board
@@ -189,12 +205,12 @@ public:
 
                             if (board[top][left].getOccupant() == "goldfish") {
                                 if ((rand() % 100) < 70) {
-                                     cout << "Ate a goldfish" << endl;
+                                    // cout << "Ate a goldfish" << endl;
                                     board[top][left].setOccupant("empty");
                                     board[top][left].setHunger(0);
                                     ate = true;
                                 } else {
-                                     cout << "Ignored a goldfish" << endl;
+                                     // cout << "Ignored a goldfish" << endl;
                                 } // end of if else statement
                             } else if (board[top][left].getOccupant() == "pufferfish") {
                                 int outcome = rand() % 100;
@@ -226,20 +242,78 @@ public:
 
                         int newX;
                         int newY;
-                        if (j == 0) {
-                            newX = j + 1;
-                        } else if (j == width - 1) {
-                            newX = j - 1;
-                        } else {
-                            newX = j + randomMove();
-                        } // end of if else statement
-                        if (i == 0) {
-                            newY = i + 1;
-                        } else if (i == height - 1) {
-                            newY = i - 1;
-                        } else {
-                            newY = i + randomMove();
-                        } // end of if else statement
+                        // Checks if the Tile to be moved to is warm or cool. If not, runs the calculation again
+                        int attempts = 0;
+                        do {
+
+                            /* If a mobile Tile is in a corner and its safe temperature only occupies one row, it is
+                            possible that the program will loop endlessly as it tries and fails to find a safe tile
+                            for the Tile to move to. This if statement adds unique behavior for each corner of the
+                            board, preventing this endless loop
+                            */
+                            if (j == 0 && i == 0) {
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = j + 1;
+                                    newY = i;
+                                } else {
+                                    newX = j;
+                                    newY = i + 1;
+                                }
+                            } else if (j == width - 1 && i == 0) {
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = j - 1;
+                                    newY = i;
+                                } else {
+                                    newX = j;
+                                    newY = i + 1;
+                                }
+                            } else if (j == 0 && i == height - 1) {
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = j + 1;
+                                    newY = i;
+                                } else {
+                                    newX = j;
+                                    newY = i - 1;
+                                }
+                            } else if (j == width - 1 && i == height - 1) {
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = j - 1;
+                                    newY = i;
+                                } else {
+                                    newX = j;
+                                    newY = i - 1;
+                                }
+
+
+                            // From now on, if statements deal with normal movement
+                                } else {
+                                    if (j == 0) {
+                                        newX = j + 1;
+                                    } else if (j == width - 1) {
+                                        newX = j - 1;
+                                    } else {
+                                        newX = j + randomMove();
+                                    } // end of if else statement
+                                    if (i == 0) {
+                                        newY = i + 1;
+                                    } else if (i == height - 1) {
+                                        newY = i - 1;
+                                    } else {
+                                        newY = i + randomMove();
+                                    } // end of if else statement
+                                } // end of if else statement
+                            // cout << board[newY][newX].getTemperature() << endl;
+                            attempts++;
+                            if (attempts > 500) {
+                                cout << "Over 500" << endl;
+                                break;
+                            }
+                        } while (board[newY][newX].getTemperature() < 2);
+
                         move.setX(newX);
                         move.setY(newY);
                         move.setOldX(j);
@@ -410,7 +484,16 @@ int main() {
     // Seeds the random number generator
     srand(time(0));
 
-    Board board(15, 15);
+    Board board(3, 3);
     board.displayTemperature();
+    cout << endl;
+    board.getTile(0, 0).setOccupant("shark");
+    board.getTile(0, 0).setHunger(5);
+    board.displayOccupants();
+    for (int i = 0; i < 10; i++) {
+        board.tick();
+        board.displayOccupants();
+        cout << endl;
+    }
     return 0;
 } // end of main
