@@ -154,13 +154,13 @@ public:
     } // end of constructor Board
 
     // Returns the address of a Tile at a specific x and y coordinate of the board
-    Tile& getTile(const int x, int y) {return board[y][x];}
+    Tile& getTile(const int y, const int x) {return board[y][x];}
 
     // Prints the board, where each space is displayed as the one occupying it
     void displayOccupants() {
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                cout << board[i][j].getOccupant() << " ";
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                cout << board[y][x].getOccupant() << " ";
             } // end of for loop
             cout << endl;
         } // end of for loop
@@ -168,18 +168,18 @@ public:
 
     // Prints the board, where each space is displayed as the hunger value associated with it
     void displayHunger() {
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                cout << board[i][j].getHunger() << " ";
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                cout << board[y][x].getHunger() << " ";
             } // end of for loop
             cout << endl;
         } // end of for loop
     } // end of method displayHunger
 
     void displayTemperature() {
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                cout << board[i][j].getTemperature() << " ";
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                cout << board[y][x].getTemperature() << " ";
             } // end of for loop
             cout << endl;
         } // end of for loop
@@ -187,7 +187,7 @@ public:
 
     QueuedMove calculateMove(const int y, const int x, const string &occupant, int minTemp) {
         QueuedMove move;
-                        move.setHunger(board[y][x].getHunger());
+                        move.setHunger(board[y][x].getHunger() - 1);
                         move.setOccupant(occupant);
 
                         int newX;
@@ -325,17 +325,22 @@ public:
     // of actions
     void tick() {
 
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                if (board[i][j].getOccupant() == "shark") {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if ((board[y][x].getOccupant() != "empty" || board[y][x].getOccupant() != "seaweed")
+                    && board[y][x].getHunger() == 0) {
+
+                    board[y][x].setOccupant("empty");
+
+                } else if (board[y][x].getOccupant() == "shark") {
 
                     // A shark checks all Tiles around it for prey. When it encounters a Tile occupied by its prey
                     // (goldfish or pufferfish), it attempts to convert that Tile into empty with a 70% success rate
                     bool ate = false;
-                    for (int top = i - 1; top <= i + 1 && !ate; top++) {
-                        for (int left = j - 1; left <= j + 1 && !ate; left++) {
+                    for (int top = y - 1; top <= y + 1 && !ate; top++) {
+                        for (int left = x - 1; left <= x + 1 && !ate; left++) {
                             // If the Tile is out of bounds, it will not be checked
-                            if (top < 0 || left < 0 || top >= height || left >= width || (top == i && left == j)) {
+                            if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
                                 continue;
                             } // end of if statement
 
@@ -344,6 +349,7 @@ public:
                                     // cout << "Ate a goldfish" << endl;
                                     board[top][left].setOccupant("empty");
                                     board[top][left].setHunger(0);
+                                    board[y][x].setHunger(board[y][x].getHunger() + 10);
                                     ate = true;
                                 } else {
                                      // cout << "Ignored a goldfish" << endl;
@@ -352,13 +358,14 @@ public:
                                 int outcome = rand() % 100;
                                 if (outcome < 35) {
                                      cout << "Tried to eat a pufferfish and died" << endl;
-                                    board[i][j].setOccupant("empty");
-                                    board[i][j].setHunger(0);
+                                    board[y][x].setOccupant("empty");
+                                    board[y][x].setHunger(0);
                                     ate = true;
                                 } else if (outcome < 70) {
                                      cout << "Succesfully ate a pufferfish" << endl;
                                     board[top][left].setOccupant("empty");
                                     board[top][left].setHunger(0);
+                                    board[y][x].setHunger(board[y][x].getHunger() + 10);
                                     ate = true;
                                 } else {
                                      cout << "Ignored a pufferfish" << endl;
@@ -370,20 +377,20 @@ public:
                     // Randomly moves the shark one space in any direction, as long as that movement will not take it
                     // out of bounds
                     // Also checks if the shark died from eating a pufferfish.
-                    if (board[i][j].getOccupant() != "empty") {
-                        queue.push(calculateMove(i, j, "shark", 2));
+                    if (board[y][x].getOccupant() != "empty") {
+                        queue.push(calculateMove(y, x, "shark", 2));
                     } // end of if statement
 
 
-                } else if (board[i][j].getOccupant() == "goldfish") {
+                } else if (board[y][x].getOccupant() == "goldfish") {
 
                     // A goldfish checks all Tiles around it for prey. When it encounters a Tile occupied by its prey
                     // (seaweed), it attempts to convert that Tile into empty with a 70% success rate
                     bool ate = false;
-                    for (int top = i - 1; top <= i + 1 && !ate; top++) {
-                        for (int left = j - 1; left <= j + 1 && !ate; left++) {
+                    for (int top = y - 1; top <= y + 1 && !ate; top++) {
+                        for (int left = x - 1; left <= x + 1 && !ate; left++) {
                             // If the Tile is out of bounds, it will not be checked
-                            if (top < 0 || left < 0 || top >= height || left >= width || (top == i && left == j)) {
+                            if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
                                 continue;
                             } // end of if statement
 
@@ -392,6 +399,7 @@ public:
                                      cout << "Ate seaweed" << endl;
                                     board[top][left].setOccupant("empty");
                                     board[top][left].setHunger(0);
+                                    board[y][x].setHunger(board[y][x].getHunger() + 10);
                                     ate = true;
                                 }  // end of if statement
                             } // end of if statement
@@ -401,16 +409,16 @@ public:
                     // Randomly moves the goldfish one space in any direction, as long as that movement will not take it
                     // out of bounds
 
-                    queue.push(calculateMove(i, j, "goldfish", 2));
+                    queue.push(calculateMove(y, x, "goldfish", 2));
 
-                } else if (board[i][j].getOccupant() == "seaweed") {
+                } else if (board[y][x].getOccupant() == "seaweed") {
 
                     // Seaweed has a 10% chance each tick to convert a random empty Tile adjacent to it into seaweed
                     bool birthed = false;
-                    for (int top = i - 1; top <= i + 1 && !birthed; top++) {
-                        for (int left = j - 1; left <= j + 1 && !birthed; left++) {
+                    for (int top = y - 1; top <= y + 1 && !birthed; top++) {
+                        for (int left = x - 1; left <= x + 1 && !birthed; left++) {
                             // If the Tile is out of bounds, it will not be checked
-                            if (top < 0 || left < 0 || top >= height || left >= width || (top == i && left == j)) {
+                            if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
                                 continue;
                             } // end of if statement
 
@@ -428,18 +436,18 @@ public:
                     // out of bounds
                     // Seaweed has a 50% chance to not move
                     if ((rand() % 100) < 50) {
-                        queue.push(calculateMove(i, j, "seaweed", 1));
+                        queue.push(calculateMove(y, x, "seaweed", 1));
                     } // end of if statement
 
-                } else if (board[i][j].getOccupant() == "pufferfish") {
+                } else if (board[y][x].getOccupant() == "pufferfish") {
 
                     // A pufferfish checks all Tiles around it for prey. When it encounters a Tile occupied by its prey
                     // (seaweed or goldfish), it attempts to convert that Tile into empty with a 70% success rate
                     bool ate = false;
-                    for (int top = i - 1; top <= i + 1 && !ate; top++) {
-                        for (int left = j - 1; left <= j + 1 && !ate; left++) {
+                    for (int top = y - 1; top <= y + 1 && !ate; top++) {
+                        for (int left = x - 1; left <= x + 1 && !ate; left++) {
                             // If the Tile is out of bounds, it will not be checked
-                            if (top < 0 || left < 0 || top >= height || left >= width || (top == i && left == j)) {
+                            if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
                                 continue;
                             } // end of if statement
 
@@ -448,14 +456,25 @@ public:
                                     cout << "Ate seaweed" << endl;
                                     board[top][left].setOccupant("empty");
                                     board[top][left].setHunger(0);
+                                    board[y][x].setHunger(board[y][x].getHunger() + 10);
                                     ate = true;
                                 } else {
                                     cout << "Ignored seaweed" << endl;
                                 } // end of if else statement
+                            } else if (board[top][left].getOccupant() == "goldfish") {
+                                if ((rand() % 100) < 70) {
+                                    cout << "Ate goldfish" << endl;
+                                    board[top][left].setOccupant("empty");
+                                    board[top][left].setHunger(0);
+                                    board[y][x].setHunger(board[y][x].getHunger() + 10);
+                                    ate = true;
+                                } else {
+                                    cout << "Ignored goldfish" << endl;
+                                } // end of if else statement
                             } // end of if statement
                         } // end of for loop
                     } // end of for loop
-                    queue.push(calculateMove(i, j, "pufferfish", 1));
+                    queue.push(calculateMove(y, x, "pufferfish", 1));
                 } // end of if else statement
             } // end of for loop
         } // end of for loop
@@ -470,7 +489,7 @@ public:
 
                 newTile->setOccupant(current_move.getOccupant());
                 if (current_move.getHunger() > 0) {
-                    newTile->setHunger(current_move.getHunger() - 1);
+                    newTile->setHunger(current_move.getHunger());
                 } else {
                     newTile->setHunger(current_move.getHunger());
                 }
@@ -490,15 +509,17 @@ int main() {
     srand(time(0));
 
     Board board(3, 3);
-    board.displayTemperature();
-    cout << endl;
-    board.getTile(0, 0).setOccupant("seaweed");
+    board.getTile(0, 0).setOccupant("shark");
     board.getTile(0, 0).setHunger(5);
     board.displayOccupants();
+    cout << endl;
+    board.displayHunger();
     cout << endl;
     for (int i = 0; i < 10; i++) {
         board.tick();
         board.displayOccupants();
+        cout << endl;
+        board.displayHunger();
         cout << endl;
     }
     return 0;
