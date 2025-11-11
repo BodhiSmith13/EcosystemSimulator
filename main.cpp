@@ -154,7 +154,7 @@ public:
     } // end of constructor Board
 
     // Returns the address of a Tile at a specific x and y coordinate of the board
-    Tile& getTile(int x, int y) {return board[y][x];}
+    Tile& getTile(const int x, int y) {return board[y][x];}
 
     // Prints the board, where each space is displayed as the one occupying it
     void displayOccupants() {
@@ -185,6 +185,142 @@ public:
         } // end of for loop
     } // end of method displayTemperature
 
+    QueuedMove calculateMove(const int y, const int x, const string &occupant, int minTemp) {
+        QueuedMove move;
+                        move.setHunger(board[y][x].getHunger());
+                        move.setOccupant(occupant);
+
+                        int newX;
+                        int newY;
+                        // Checks if the Tile to be moved to is warm or cool. If not, runs the calculation again
+                        do {
+
+                            /* If a mobile Tile is in a corner and its safe temperature only occupies one row, it is
+                            possible that the program will loop endlessly as it tries and fails to find a safe tile
+                            for the Tile to move to. This if statement adds unique behavior for each corner of the
+                            board, preventing this endless loop
+                            */
+                            if (x == 0 && y == 0) {
+
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = x + 1;
+                                    newY = y;
+                                } else {
+                                    newX = x;
+                                    newY = y + 1;
+                                } // end of if else statement
+
+                            } else if (x == width - 1 && y == 0) {
+
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = x - 1;
+                                    newY = y;
+                                } else {
+                                    newX = x;
+                                    newY = y + 1;
+                                } // end of if else statement
+
+                            } else if (x == 0 && y == height - 1) {
+
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = x + 1;
+                                    newY = y;
+                                } else {
+                                    newX = x;
+                                    newY = y - 1;
+                                } // end of if else statement
+
+                            } else if (x == width - 1 && y == height - 1) {
+
+                                int chance = rand() % 100;
+                                if (chance < 50) {
+                                    newX = x - 1;
+                                    newY = y;
+                                } else {
+                                    newX = x;
+                                    newY = y - 1;
+                                } // end of if else statement
+
+                                } else {
+                                    if (x == 0) {
+                                        int chance = rand() % 100;
+                                        if (chance < 50) {
+                                            newX = x + 1;
+                                            newY = y;
+                                        } else {
+                                            chance = rand() % 100;
+                                            if (chance < 50) {
+                                                newX = x;
+                                                newY = y + 1;
+                                            } else {
+                                                newX = x;
+                                                newY = y - 1;
+                                            } // end of if else statement
+                                        } // end of if else statement
+                                    } else if (x == width - 1) {
+                                        int chance = rand() % 100;
+                                        if (chance < 50) {
+                                            newX = x - 1;
+                                            newY = y;
+                                        } else {
+                                            chance = rand() % 100;
+                                            if (chance < 50) {
+                                                newX = x;
+                                                newY = y + 1;
+                                            } else {
+                                                newX = x;
+                                                newY = y - 1;
+                                            } // end of if else statement
+                                        } // end of if else statement
+                                    } else {
+                                        newX = x + randomMove();
+                                    } // end of if else statement
+                                    if (y == 0) {
+                                        int chance = rand() % 100;
+                                        if (chance < 50) {
+                                            newX = x;
+                                            newY = y + 1;
+                                        } else {
+                                            chance = rand() % 100;
+                                            if (chance < 50) {
+                                                newX = x + 1;
+                                                newY = y;
+                                            } else {
+                                                newX = x - 1;
+                                                newY = y;
+                                            } // end of if else statement
+                                        } // end of if else statement
+                                    } else if (y == height - 1) {
+                                        int chance = rand() % 100;
+                                        if (chance < 50) {
+                                            newX = x;
+                                            newY = y - 1;
+                                        } else {
+                                            chance = rand() % 100;
+                                            if (chance < 50) {
+                                                newX = x + 1;
+                                                newY = y;
+                                            } else {
+                                                newX = x - 1;
+                                                newY = y;
+                                            } // end of if else statement
+                                        } // end of if else statement
+                                    } else {
+                                        newY = y + randomMove();
+                                    } // end of if else statement
+                                } // end of if else statement
+                            // cout << board[newY][newX].getTemperature() << endl;
+                        } while (board[newY][newX].getTemperature() < minTemp);
+
+        move.setX(newX);
+        move.setY(newY);
+        move.setOldX(x);
+        move.setOldY(y);
+        return move;
+    }
     // Sweeps the board from top left to bottom right, and resolves Tile's actions when it encounters a Tile capable
     // of actions
     void tick() {
@@ -235,93 +371,8 @@ public:
                     // out of bounds
                     // Also checks if the shark died from eating a pufferfish.
                     if (board[i][j].getOccupant() != "empty") {
-
-                        QueuedMove move;
-                        move.setHunger(board[i][j].getHunger());
-                        move.setOccupant("shark");
-
-                        int newX;
-                        int newY;
-                        // Checks if the Tile to be moved to is warm or cool. If not, runs the calculation again
-                        int attempts = 0;
-                        do {
-
-                            /* If a mobile Tile is in a corner and its safe temperature only occupies one row, it is
-                            possible that the program will loop endlessly as it tries and fails to find a safe tile
-                            for the Tile to move to. This if statement adds unique behavior for each corner of the
-                            board, preventing this endless loop
-                            */
-                            if (j == 0 && i == 0) {
-                                int chance = rand() % 100;
-                                if (chance < 50) {
-                                    newX = j + 1;
-                                    newY = i;
-                                } else {
-                                    newX = j;
-                                    newY = i + 1;
-                                }
-                            } else if (j == width - 1 && i == 0) {
-                                int chance = rand() % 100;
-                                if (chance < 50) {
-                                    newX = j - 1;
-                                    newY = i;
-                                } else {
-                                    newX = j;
-                                    newY = i + 1;
-                                }
-                            } else if (j == 0 && i == height - 1) {
-                                int chance = rand() % 100;
-                                if (chance < 50) {
-                                    newX = j + 1;
-                                    newY = i;
-                                } else {
-                                    newX = j;
-                                    newY = i - 1;
-                                }
-                            } else if (j == width - 1 && i == height - 1) {
-                                int chance = rand() % 100;
-                                if (chance < 50) {
-                                    newX = j - 1;
-                                    newY = i;
-                                } else {
-                                    newX = j;
-                                    newY = i - 1;
-                                }
-
-
-                            // From now on, if statements deal with normal movement
-                                } else {
-                                    if (j == 0) {
-                                        newX = j + 1;
-                                    } else if (j == width - 1) {
-                                        newX = j - 1;
-                                    } else {
-                                        newX = j + randomMove();
-                                    } // end of if else statement
-                                    if (i == 0) {
-                                        newY = i + 1;
-                                    } else if (i == height - 1) {
-                                        newY = i - 1;
-                                    } else {
-                                        newY = i + randomMove();
-                                    } // end of if else statement
-                                } // end of if else statement
-                            // cout << board[newY][newX].getTemperature() << endl;
-                            attempts++;
-                            if (attempts > 500) {
-                                cout << "Over 500" << endl;
-                                break;
-                            }
-                        } while (board[newY][newX].getTemperature() < 2);
-
-                        move.setX(newX);
-                        move.setY(newY);
-                        move.setOldX(j);
-                        move.setOldY(i);
-                        // cout << move.getX() << " " << move.getY() << endl;
-                        queue.push(move);
-
-                    }
+                        queue.push(calculateMove(i, j, "shark", 2));
+                    } // end of if statement
 
 
                 } else if (board[i][j].getOccupant() == "goldfish") {
@@ -349,31 +400,8 @@ public:
 
                     // Randomly moves the goldfish one space in any direction, as long as that movement will not take it
                     // out of bounds
-                    QueuedMove move;
-                    move.setHunger(board[i][j].getHunger());
-                    move.setOccupant("goldfish");
-                    int newX;
-                    int newY;
-                    if (j == 0) {
-                        newX = j + 1;
-                    } else if (j == width - 1) {
-                        newX = j - 1;
-                    } else {
-                        newX = j + randomMove();
-                    } // end of if else statement
-                    if (i == 0) {
-                        newY = i + 1;
-                    } else if (i == height - 1) {
-                        newY = i - 1;
-                    } else {
-                        newY = i + randomMove();
-                    } // end of if else statement
-                    move.setX(newX);
-                    move.setY(newY);
-                    move.setOldX(j);
-                    move.setOldY(i);
-                    // cout << move.getX() << " " << move.getY() << endl;
-                    queue.push(move);
+
+                    queue.push(calculateMove(i, j, "goldfish", 2));
 
                 } else if (board[i][j].getOccupant() == "seaweed") {
 
@@ -400,32 +428,8 @@ public:
                     // out of bounds
                     // Seaweed has a 50% chance to not move
                     if ((rand() % 100) < 50) {
-                        QueuedMove move;
-                        move.setHunger(0);
-                        move.setOccupant("seaweed");
-                        int newX;
-                        int newY;
-                        if (j == 0) {
-                            newX = j + 1;
-                        } else if (j == width - 1) {
-                            newX = j - 1;
-                        } else {
-                            newX = j + randomMove();
-                        } // end of if else statement
-                        if (i == 0) {
-                            newY = i + 1;
-                        } else if (i == height - 1) {
-                            newY = i - 1;
-                        } else {
-                            newY = i + randomMove();
-                        } // end of if else statement
-                        move.setX(newX);
-                        move.setY(newY);
-                        move.setOldX(j);
-                        move.setOldY(i);
-                        // cout << move.getX() << " " << move.getY() << endl;
-                        queue.push(move);
-                    }
+                        queue.push(calculateMove(i, j, "seaweed", 1));
+                    } // end of if statement
 
                 } else if (board[i][j].getOccupant() == "pufferfish") {
 
@@ -451,6 +455,7 @@ public:
                             } // end of if statement
                         } // end of for loop
                     } // end of for loop
+                    queue.push(calculateMove(i, j, "pufferfish", 1));
                 } // end of if else statement
             } // end of for loop
         } // end of for loop
@@ -487,9 +492,10 @@ int main() {
     Board board(3, 3);
     board.displayTemperature();
     cout << endl;
-    board.getTile(0, 0).setOccupant("shark");
+    board.getTile(0, 0).setOccupant("seaweed");
     board.getTile(0, 0).setHunger(5);
     board.displayOccupants();
+    cout << endl;
     for (int i = 0; i < 10; i++) {
         board.tick();
         board.displayOccupants();
