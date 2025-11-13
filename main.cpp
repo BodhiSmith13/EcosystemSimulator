@@ -406,10 +406,15 @@ public:
                 const int outcome = rand() % 100;
                 if (board[top][left].getOccupant() == prey) {
                     if (outcome < chance) {
+                        cout << "Trying to attack pufferfish" << endl;
                         if (outcome < deathChance) {
+                            cout << "Pufferfish killed shark" << endl;
+                            cout << "Original occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setOccupant("bones");
+                            cout << "New occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setHunger(-1);
                         } else {
+                            cout << "Shark killed pufferfish" << endl;
                             if (prey == "seaweed" || prey == "bones") {
                                 board[top][left].setOccupant("empty");
                                 board[top][left].setHunger(0);
@@ -456,6 +461,7 @@ public:
 
                         // A shark checks all Tiles around it for prey. It first looks for goldfish, then pufferfish
                         if (eat(y, x, "goldfish", 70) == false) {
+                            cout << "Looking for pufferfish" << endl;
                             dangerEat(y, x, "pufferfish", 70, 35);
                         }
 
@@ -463,6 +469,7 @@ public:
                         // it out of bounds
                         // Also checks if the shark died from eating a pufferfish.
                         if (board[y][x].getOccupant() != "empty") {
+                            cout << "Shark moving" << endl;
                             queue.push_back(calculateMove(y, x, "shark", 2, 2));
                         } // end of if statement
 
@@ -551,22 +558,29 @@ int main() {
     // Seeds the random number generator
     srand(time(nullptr));
 
-    Board board(9, 9, 5);
+    Board board(3, 3, 5);
     /*
     board.getTile(0, 0).setOccupant("shark");
     board.getTile(0, 0).setHunger(board.getDefaultHunger());
      board.getTile(0, 1).setOccupant("goldfish");
     board.getTile(0, 1).setHunger(board.getDefaultHunger());
     */
-    board.getTile(8, 8).setOccupant("crab");
-    board.getTile(8, 8).setHunger(board.getDefaultHunger() + 20);
+    board.getTile(0, 0).setOccupant("shark");
+    board.getTile(0, 0).setHunger(board.getDefaultHunger());
+    //board.getTile(0, 8).setOccupant("goldfish");
+    //board.getTile(0, 8).setHunger(board.getDefaultHunger() + 20);
+    board.getTile(0, 2).setOccupant("pufferfish");
+    board.getTile(0, 2).setHunger(board.getDefaultHunger());
+    //board.getTile(0, 3).setOccupant("seaweed");
+    //board.getTile(8, 8).setOccupant("crab");
+    //board.getTile(8, 8).setHunger(board.getDefaultHunger() + 20);
     board.displayTemperature();
     cout << endl;
     board.displayOccupants();
     cout << endl;
     board.displayHunger();
     cout << endl;
-    for (int i = 0; i < 30; i++) {
+    for (int i = 0; i < 5; i++) {
         board.tick();
         board.displayOccupants();
         cout << endl;
