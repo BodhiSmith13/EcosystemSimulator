@@ -306,6 +306,85 @@ public:
         return move;
     } // end of method calculateMove
 
+    void breed(int y, int x, int minTemp, int maxTemp) {
+            bool bred = false;
+            for (int top = y - 1; top <= y + 1 && !bred; top++) {
+                for (int left = x - 1; left <= x + 1 && !bred; left++) {
+                    // If the Tile is out of bounds, it will not be checked
+                    if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
+                        continue;
+                    } // end of if statement
+
+                    // Checks that the Tile to be cloned to is empty and within the given temperature range.
+                    // If minTemp and MaxTemp are the same, instead a Tile of minTemp is chosen
+                    if (board[top][left].getOccupant() == "empty" && (board[top][left].getTemperature() > minTemp
+                        && board[top][left].getTemperature() < maxTemp) || (minTemp == maxTemp
+                            && board[top][left].getTemperature() == minTemp)){
+                        if ((rand() % 100) < 70) {
+                            board[top][left].setOccupant("shark");
+                            board[top][left].setHunger(defaultHunger);
+                            board[y][x].setHunger(board[y][x].getHunger() - 5);
+                            bred = true;
+                        } // end of if else statement
+                    } // end of if else statement
+                } // end of for loop
+            } // end of for loop
+        } // end of function Breed
+    void eat(int y, int x, const string &prey, const string &leftOvers) {
+        bool ate = false;
+        for (int top = y - 1; top <= y + 1 && !ate; top++) {
+            for (int left = x - 1; left <= x + 1 && !ate; left++) {
+                // If the Tile is out of bounds, it will not be checked
+                if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
+                    continue;
+                } // end of if statement
+
+                if (board[top][left].getOccupant() == prey) {
+                    if ((rand() % 100) < 70) {
+                        board[top][left].setOccupant(leftOvers);
+                        board[top][left].setHunger(0);
+                        board[y][x].setHunger(board[y][x].getHunger() + 10);
+                        ate = true;
+                    }  // end of if statement
+                } // end of if statement
+            } // end of for loop
+        } // end of for loop
+    }
+
+    void eat(int y, int x, const string &prey, const string &leftOvers, const string &prey2,
+        const string &leftOvers2) {
+        bool ate = false;
+        for (int top = y - 1; top <= y + 1 && !ate; top++) {
+            for (int left = x - 1; left <= x + 1 && !ate; left++) {
+                // If the Tile is out of bounds, it will not be checked
+                if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
+                    continue;
+                } // end of if statement
+
+                if (board[top][left].getOccupant() == prey) {
+                    if ((rand() % 100) < 70) {
+                        board[top][left].setOccupant(leftOvers);
+                        board[top][left].setHunger(-1);
+                        board[y][x].setHunger(board[y][x].getHunger() + 10);
+                        ate = true;
+                    } // end of if else statement
+                } else if (board[top][left].getOccupant() == prey2) {
+                    const int outcome = rand() % 100;
+                    if (outcome < 35) {
+                        board[y][x].setOccupant(leftOvers2);
+                        board[y][x].setHunger(-1);
+                        ate = true;
+                    } else if (outcome < 70) {
+                        board[top][left].setOccupant(leftOvers2);
+                        board[top][left].setHunger(-1);
+                        board[y][x].setHunger(board[y][x].getHunger() + 10);
+                        ate = true;
+                    } // end of if else statement
+                } // end of if else statement
+            } // end of for loop
+        } // end of for loop
+    } // end of function Eat
+
     // Sweeps the board from top left to bottom right, and resolves Tile's actions when it encounters a Tile capable
     // of actions
     void tick() {
@@ -326,62 +405,14 @@ public:
                                 QueuedMove(0, "bones", y + 1, x, y, x));
                         }
                     } else if (board[y][x].getOccupant() == "shark") {
-
-
-                        // Breeding
+                        
                         if (board[y][x].getHunger() > 10) {
-                            bool bred = false;
-                            for (int top = y - 1; top <= y + 1 && !bred; top++) {
-                                for (int left = x - 1; left <= x + 1 && !bred; left++) {
-                                    // If the Tile is out of bounds, it will not be checked
-                                    if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
-                                        continue;
-                                    } // end of if statement
-
-                                    if (board[top][left].getOccupant() == "empty") {
-                                        if ((rand() % 100) < 70) {
-                                            board[top][left].setOccupant("shark");
-                                            board[top][left].setHunger(defaultHunger);
-                                            board[y][x].setHunger(board[y][x].getHunger() - 5);
-                                            bred = true;
-                                        } // end of if else statement
-                                    } // end of if else statement
-                                } // end of for loop
-                            } // end of for loop
+                            breed(y, x, 2, 2);
                         } // end of if statement
 
                         // A shark checks all Tiles around it for prey. When it encounters a Tile occupied by its prey
                         // (goldfish or pufferfish), it attempts to convert that Tile into empty with a 70% success rate
-                        bool ate = false;
-                        for (int top = y - 1; top <= y + 1 && !ate; top++) {
-                            for (int left = x - 1; left <= x + 1 && !ate; left++) {
-                                // If the Tile is out of bounds, it will not be checked
-                                if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
-                                    continue;
-                                } // end of if statement
-
-                                if (board[top][left].getOccupant() == "goldfish") {
-                                    if ((rand() % 100) < 70) {
-                                        board[top][left].setOccupant("bones");
-                                        board[top][left].setHunger(-1);
-                                        board[y][x].setHunger(board[y][x].getHunger() + 10);
-                                        ate = true;
-                                    } // end of if else statement
-                                } else if (board[top][left].getOccupant() == "pufferfish") {
-                                    const int outcome = rand() % 100;
-                                    if (outcome < 35) {
-                                        board[y][x].setOccupant("bones");
-                                        board[y][x].setHunger(-1);
-                                        ate = true;
-                                    } else if (outcome < 70) {
-                                        board[top][left].setOccupant("bones");
-                                        board[top][left].setHunger(-1);
-                                        board[y][x].setHunger(board[y][x].getHunger() + 10);
-                                        ate = true;
-                                    } // end of if else statement
-                                } // end of if else statement
-                            } // end of for loop
-                        } // end of for loop
+                        eat(y, x, "goldfish", "bones", "pufferfish", "bones");
 
                         // Randomly moves the shark one space in any direction, as long as that movement will not take
                         // it out of bounds
@@ -395,46 +426,12 @@ public:
 
                         // Breeding
                         if (board[y][x].getHunger() > 10) {
-                            bool bred = false;
-                            for (int top = y - 1; top <= y + 1 && !bred; top++) {
-                                for (int left = x - 1; left <= x + 1 && !bred; left++) {
-                                    // If the Tile is out of bounds, it will not be checked
-                                    if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
-                                        continue;
-                                    } // end of if statement
-
-                                    if (board[top][left].getOccupant() == "empty") {
-                                        if ((rand() % 100) < 70) {
-                                            board[top][left].setOccupant("goldfish");
-                                            board[top][left].setHunger(defaultHunger);
-                                            board[y][x].setHunger(board[y][x].getHunger() - 5);
-                                            bred = true;
-                                        } // end of if else statement
-                                    } // end of if else statement
-                                } // end of for loop
-                            } // end of for loop
+                            breed(y, x, 1, 2);
                         } // end of if statement
 
                         // A goldfish checks all Tiles around it for prey. When it encounters a Tile occupied by its
                         // prey (seaweed), it attempts to convert that Tile into empty with a 70% success rate
-                        bool ate = false;
-                        for (int top = y - 1; top <= y + 1 && !ate; top++) {
-                            for (int left = x - 1; left <= x + 1 && !ate; left++) {
-                                // If the Tile is out of bounds, it will not be checked
-                                if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
-                                    continue;
-                                } // end of if statement
-
-                                if (board[top][left].getOccupant() == "seaweed") {
-                                    if ((rand() % 100) < 70) {
-                                        board[top][left].setOccupant("empty");
-                                        board[top][left].setHunger(0);
-                                        board[y][x].setHunger(board[y][x].getHunger() + 10);
-                                        ate = true;
-                                    }  // end of if statement
-                                } // end of if statement
-                            } // end of for loop
-                        } // end of for loop
+                        eat(y, x, "seaweed", "empty");
 
                         // Randomly moves the goldfish one space in any direction, as long as that movement will not
                         // take it out of bounds
@@ -465,24 +462,7 @@ public:
 
                         // Breeding
                         if (board[y][x].getHunger() > 10) {
-                            bool bred = false;
-                            for (int top = y - 1; top <= y + 1 && !bred; top++) {
-                                for (int left = x - 1; left <= x + 1 && !bred; left++) {
-                                    // If the Tile is out of bounds, it will not be checked
-                                    if (top < 0 || left < 0 || top >= height || left >= width || (top == y && left == x)) {
-                                        continue;
-                                    } // end of if statement
-
-                                    if (board[top][left].getOccupant() == "empty") {
-                                        if ((rand() % 100) < 70) {
-                                            board[top][left].setOccupant("pufferfish");
-                                            board[top][left].setHunger(defaultHunger);
-                                            board[y][x].setHunger(board[y][x].getHunger() - 5);
-                                            bred = true;
-                                        } // end of if else statement
-                                    } // end of if else statement
-                                } // end of for loop
-                            } // end of for loop
+                            breed(y, x, 1, 2);
                         } // end of if statement
 
                         // A pufferfish checks all Tiles around it for prey. When it encounters a Tile occupied by its
