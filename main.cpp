@@ -406,15 +406,12 @@ public:
                 const int outcome = rand() % 100;
                 if (board[top][left].getOccupant() == prey) {
                     if (outcome < chance) {
-                        cout << "Trying to attack pufferfish" << endl;
                         if (outcome < deathChance) {
-                            cout << "Pufferfish killed shark" << endl;
                             cout << "Original occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setOccupant("bones");
                             cout << "New occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setHunger(-1);
                         } else {
-                            cout << "Shark killed pufferfish" << endl;
                             if (prey == "seaweed" || prey == "bones") {
                                 board[top][left].setOccupant("empty");
                                 board[top][left].setHunger(0);
@@ -461,15 +458,13 @@ public:
 
                         // A shark checks all Tiles around it for prey. It first looks for goldfish, then pufferfish
                         if (eat(y, x, "goldfish", 70) == false) {
-                            cout << "Looking for pufferfish" << endl;
                             dangerEat(y, x, "pufferfish", 70, 35);
                         }
 
                         // Randomly moves the shark one space in any direction, as long as that movement will not take
                         // it out of bounds
                         // Also checks if the shark died from eating a pufferfish.
-                        if (board[y][x].getOccupant() != "empty") {
-                            cout << "Shark moving" << endl;
+                        if (board[y][x].getOccupant() != "bones") {
                             queue.push_back(calculateMove(y, x, "shark", 2, 2));
                         } // end of if statement
 
