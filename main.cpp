@@ -407,9 +407,7 @@ public:
                 if (board[top][left].getOccupant() == prey) {
                     if (outcome < chance) {
                         if (outcome < deathChance) {
-                            cout << "Original occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setOccupant("bones");
-                            cout << "New occupant: " << board[y][x].getOccupant() << endl;
                             board[y][x].setHunger(-1);
                         } else {
                             if (prey == "seaweed" || prey == "bones") {
